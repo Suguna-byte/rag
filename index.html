@@ -1,0 +1,456 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Interview Desk</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,700;12..96,800&family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,500;1,7..72,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --paper: #EDF0F4;
+  --surface: #FFFFFF;
+  --ink: #18223A;
+  --muted: #5A6478;
+  --rule: #D3D9E3;
+  --mark: #FFE066;
+  --mark-ink: #18223A;
+  --keyword: #0F7B76;
+  --meaning: #6A4BC4;
+  --focus: #2F6FEB;
+  --error: #B42318;
+  --sans: "Bricolage Grotesque", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --serif: "Literata", Georgia, "Times New Roman", serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #121826; --surface: #1A2233; --ink: #E6EAF2; --muted: #97A1B5; --rule: #2C3650;
+    --mark: rgba(255, 224, 102, .30); --mark-ink: #FFF6CC; --keyword: #4CC2BA; --meaning: #A592F0;
+    --focus: #7EA6FF; --error: #FF8A80; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #121826; --surface: #1A2233; --ink: #E6EAF2; --muted: #97A1B5; --rule: #2C3650;
+  --mark: rgba(255, 224, 102, .30); --mark-ink: #FFF6CC; --keyword: #4CC2BA; --meaning: #A592F0;
+  --focus: #7EA6FF; --error: #FF8A80; color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0; background: var(--paper); color: var(--ink);
+  font: 400 16px/1.5 var(--sans); font-variant-numeric: tabular-nums;
+}
+button, input { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; border-radius: 4px; }
+mark { background: var(--mark); color: var(--mark-ink); padding: 0 .1em; border-radius: 2px; }
+
+.wrap { max-width: 1180px; margin: 0 auto; padding: 0 16px; }
+
+/* Header */
+header.top { padding: 28px 0 8px; display: flex; flex-wrap: wrap; gap: 8px 24px; align-items: baseline; justify-content: space-between; }
+.brand { font-weight: 800; font-size: 22px; letter-spacing: -.01em; margin: 0; }
+.stats { color: var(--muted); font-size: 14px; margin: 0; }
+
+nav.tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--rule); margin-top: 12px; }
+nav.tabs button {
+  background: none; border: 0; padding: 10px 14px 12px; cursor: pointer; color: var(--muted);
+  font-weight: 500; border-bottom: 3px solid transparent; margin-bottom: -1px;
+}
+nav.tabs button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--ink); }
+
+/* Question card: the hero */
+.ask { padding: 36px 0 20px; }
+.ask h1 {
+  font-weight: 800; font-size: clamp(30px, 5vw, 52px); line-height: 1.05; letter-spacing: -.025em;
+  margin: 0 0 22px; max-width: 16ch;
+}
+form.q {
+  background: var(--surface); border: 1px solid var(--rule); border-radius: 14px;
+  padding: 10px 10px 10px 20px; display: flex; gap: 10px; align-items: center;
+  box-shadow: 0 1px 0 var(--rule);
+}
+form.q:focus-within { border-color: var(--focus); }
+form.q input {
+  flex: 1; min-width: 0; border: 0; background: transparent; outline: none;
+  font: 400 clamp(18px, 2.4vw, 22px)/1.4 var(--serif); padding: 10px 0;
+}
+form.q input::placeholder { color: var(--muted); font-style: italic; }
+.btn {
+  border: 0; border-radius: 10px; padding: 12px 20px; background: var(--ink); color: var(--paper);
+  font-weight: 700; cursor: pointer; white-space: nowrap;
+}
+.btn:disabled { opacity: .55; cursor: progress; }
+.btn.ghost { background: transparent; color: var(--ink); border: 1px solid var(--rule); }
+
+.controls { display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: center; margin-top: 16px; }
+.seg { display: inline-flex; background: var(--surface); border: 1px solid var(--rule); border-radius: 10px; padding: 3px; }
+.seg button { border: 0; background: none; padding: 7px 12px; border-radius: 7px; cursor: pointer; color: var(--muted); font-size: 14px; font-weight: 500; }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+.hint { color: var(--muted); font-size: 14px; }
+
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+.chips button {
+  border: 1px dashed var(--rule); background: transparent; border-radius: 999px; padding: 6px 14px;
+  font: 400 15px/1.3 var(--serif); cursor: pointer; color: var(--ink); text-align: left;
+}
+.chips button:hover { border-style: solid; border-color: var(--muted); }
+
+/* Results */
+.results { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 28px; padding: 12px 0 64px; }
+@media (max-width: 900px) { .results { grid-template-columns: 1fr; } }
+
+.panel { background: var(--surface); border: 1px solid var(--rule); border-radius: 14px; padding: 22px 24px; }
+.panel h2 { font-size: 15px; font-weight: 700; margin: 0 0 12px; color: var(--muted); }
+
+.answer { font: 400 18px/1.7 var(--serif); }
+.answer ul { margin: 0; padding-left: 1.1em; }
+.answer li { margin: 0 0 12px; max-width: 72ch; }
+.answer li::marker { color: var(--muted); }
+.answer p { margin: 0 0 12px; max-width: 72ch; }
+.cite {
+  display: inline-block; font: 700 12px/1 var(--sans); border: 1px solid var(--rule); background: var(--paper);
+  border-radius: 6px; padding: 4px 6px; margin-left: 4px; cursor: pointer; vertical-align: 2px; color: var(--ink);
+}
+.cite:hover { border-color: var(--ink); }
+.meta { margin-top: 10px; font-size: 13px; color: var(--muted); }
+
+.sources { display: grid; gap: 14px; margin-top: 22px; }
+.src { background: var(--surface); border: 1px solid var(--rule); border-radius: 14px; padding: 18px 22px; scroll-margin-top: 24px; transition: border-color .3s, box-shadow .3s; }
+.src.active { border-color: var(--ink); box-shadow: 0 0 0 1px var(--ink); }
+.src-head { display: flex; gap: 14px; align-items: flex-start; }
+.src-num {
+  flex: none; width: 30px; height: 30px; border-radius: 50%; border: 2px solid var(--ink);
+  display: grid; place-items: center; font-weight: 800; font-size: 14px;
+}
+.src h3 { margin: 2px 0 2px; font-size: 18px; font-weight: 700; line-height: 1.25; }
+.src .file { color: var(--muted); font-size: 13px; }
+.ranks { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 12px 0 0 44px; font-size: 13px; color: var(--muted); }
+.ranks b { font-weight: 700; }
+.ranks .k b { color: var(--keyword); }
+.ranks .m b { color: var(--meaning); }
+.src .body {
+  margin: 12px 0 0 44px; font: 400 16px/1.7 var(--serif); white-space: pre-line; max-width: 72ch;
+  display: -webkit-box; -webkit-line-clamp: 5; -webkit-box-orient: vertical; overflow: hidden;
+}
+.src.open .body { -webkit-line-clamp: unset; display: block; }
+.more { margin: 8px 0 0 44px; background: none; border: 0; padding: 0; color: var(--focus); cursor: pointer; font-size: 14px; font-weight: 500; }
+
+/* Trace (the signature element) */
+aside.trace { position: sticky; top: 16px; align-self: start; }
+.trace svg { width: 100%; height: auto; display: block; }
+.trace .axis { font: 600 12px var(--sans); fill: var(--muted); }
+.trace .rk { font: 500 11px var(--sans); fill: var(--muted); }
+.trace .line { fill: none; stroke: var(--ink); stroke-width: 1.5; opacity: .28; transition: opacity .2s, stroke-width .2s; }
+.trace .line.on { opacity: 1; stroke-width: 3; }
+.trace .grid { stroke: var(--rule); stroke-width: 1; }
+.trace g.hit { cursor: pointer; }
+.trace .num { font: 800 11px var(--sans); fill: var(--paper); pointer-events: none; }
+.math { margin-top: 14px; font-size: 14px; line-height: 1.6; color: var(--muted); }
+.math .eq { display: block; margin-top: 6px; color: var(--ink); font-weight: 600; font-size: 15px; }
+.legend { display: flex; gap: 16px; font-size: 13px; color: var(--muted); margin-top: 6px; }
+.legend span::before { content: ""; display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; vertical-align: -1px; background: var(--c); }
+
+.empty { padding: 28px 0 80px; color: var(--muted); max-width: 60ch; font: 400 17px/1.7 var(--serif); }
+.error { color: var(--error); font-weight: 500; margin-top: 14px; }
+
+/* Evaluation view */
+.eval { padding: 36px 0 80px; }
+.eval h1 { font-weight: 800; font-size: clamp(28px, 4vw, 40px); letter-spacing: -.02em; margin: 0 0 10px; }
+.eval .lede { color: var(--muted); max-width: 64ch; margin: 0 0 22px; font: 400 17px/1.7 var(--serif); }
+table.scores { width: 100%; border-collapse: collapse; margin-top: 22px; }
+table.scores th, table.scores td { text-align: left; padding: 12px 10px; border-bottom: 1px solid var(--rule); vertical-align: middle; }
+table.scores th { font-size: 13px; color: var(--muted); font-weight: 600; }
+table.scores td.mode { font-weight: 700; white-space: nowrap; }
+.bar { display: flex; align-items: center; gap: 10px; min-width: 120px; }
+.bar i { display: block; height: 8px; border-radius: 4px; background: var(--ink); }
+.bar.best i { background: var(--keyword); }
+.defs { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-top: 26px; }
+.defs div { font-size: 14px; color: var(--muted); }
+.defs b { display: block; color: var(--ink); font-size: 15px; margin-bottom: 2px; }
+.misses { margin-top: 26px; }
+.misses h2 { font-size: 16px; margin: 0 0 8px; }
+.misses li { font: 400 16px/1.7 var(--serif); }
+
+[hidden] { display: none !important; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; scroll-behavior: auto !important; } }
+@media (max-width: 560px) {
+  form.q { flex-direction: column; align-items: stretch; padding: 10px 12px; }
+  .panel { padding: 18px; }
+  .src { padding: 16px; }
+  .ranks, .src .body, .more { margin-left: 0; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <p class="brand">Interview Desk</p>
+    <p class="stats" id="stats">Loading your notes…</p>
+  </header>
+  <nav class="tabs" role="tablist">
+    <button role="tab" aria-selected="true" data-view="ask">Ask your notes</button>
+    <button role="tab" aria-selected="false" data-view="eval">Test retrieval</button>
+  </nav>
+
+  <!-- Ask view -->
+  <section id="view-ask">
+    <div class="ask">
+      <h1>What do you want to rehearse?</h1>
+      <form class="q" id="qform" autocomplete="off">
+        <input id="q" name="q" placeholder="How does reciprocal rank fusion work?" aria-label="Your question" maxlength="300">
+        <button class="btn" id="go" type="submit">Find answer</button>
+      </form>
+      <div class="controls">
+        <div class="seg" role="group" aria-label="Search method" id="modes">
+          <button type="button" data-mode="hybrid" aria-pressed="true">Hybrid</button>
+          <button type="button" data-mode="bm25" aria-pressed="false">Keywords only</button>
+          <button type="button" data-mode="dense" aria-pressed="false">Meaning only</button>
+        </div>
+        <span class="hint">Press / to jump to the question box.</span>
+      </div>
+      <div class="chips" id="chips"></div>
+      <p class="error" id="err" role="alert" hidden></p>
+    </div>
+
+    <div class="empty" id="empty">
+      Ask about anything in your notes: resume questions, RAG, LLM basics, ML and SQL, or behavioural answers.
+      The answer appears on the left with its sources. On the right you can see where each source ranked in keyword search
+      and meaning search, and how the two lists were merged.
+    </div>
+
+    <div class="results" id="results" hidden>
+      <div>
+        <div class="panel">
+          <h2>Answer</h2>
+          <div class="answer" id="answer" aria-live="polite"></div>
+          <div class="meta" id="meta"></div>
+        </div>
+        <div class="sources" id="sources"></div>
+      </div>
+      <aside class="trace panel" aria-label="How the sources were ranked">
+        <h2>How these were found</h2>
+        <div id="trace"></div>
+        <div class="legend">
+          <span style="--c: var(--keyword)">BM25 keyword rank</span>
+          <span style="--c: var(--meaning)">Embedding rank</span>
+        </div>
+        <div class="math" id="math"></div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- Eval view -->
+  <section id="view-eval" class="eval" hidden>
+    <h1>Is the right passage being found?</h1>
+    <p class="lede">
+      Twenty reworded questions, each with one section of your notes that should come back.
+      This compares keyword search, meaning search and the hybrid of both. These numbers are what you quote in the interview.
+    </p>
+    <button class="btn" id="runEval" type="button">Run the 20-question test</button>
+    <div id="evalOut"></div>
+    <div class="defs">
+      <div><b>Recall@1</b>Share of questions where the correct section came first.</div>
+      <div><b>Recall@3</b>Share where it appeared anywhere in the top three.</div>
+      <div><b>MRR</b>Average of 1 ÷ rank of the correct section. Rewards finding it near the top.</div>
+    </div>
+  </section>
+</div>
+
+<script>
+const $ = (s) => document.querySelector(s);
+const SUGGESTIONS = [
+  "How does reciprocal rank fusion work?",
+  "How do I prevent duplicate submissions?",
+  "What is LoRA?",
+  "How should I explain the gap after Redsage?",
+  "How do I evaluate a RAG system?",
+  "Why divide attention scores by sqrt(d_k)?",
+];
+let mode = "hybrid";
+let last = null;
+let active = 0;
+
+const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const reEsc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+function highlight(text, terms) {
+  const safe = esc(text);
+  const t = (terms || []).filter((w) => w.length > 2);
+  if (!t.length) return safe;
+  const re = new RegExp(`\\b(${t.map(reEsc).join("|")})\\b`, "gi");
+  return safe.replace(re, "<mark>$1</mark>");
+}
+
+// --- Info
+fetch("/api/info").then((r) => r.json()).then((i) => {
+  const dense = i.dense === "lsa" ? "LSA meaning search" : i.dense;
+  const gen = i.generator === "Claude" ? "answers written by Claude" : "answers quoted from your notes";
+  $("#stats").textContent = `${i.chunks} passages from ${i.docs} notes, ${dense}, ${gen}`;
+}).catch(() => { $("#stats").textContent = "Server not reachable. Start it with: python app.py"; });
+
+// --- Chips
+$("#chips").innerHTML = SUGGESTIONS.map((s) => `<button type="button">${esc(s)}</button>`).join("");
+$("#chips").addEventListener("click", (e) => {
+  if (e.target.tagName !== "BUTTON") return;
+  $("#q").value = e.target.textContent;
+  search();
+});
+
+// --- Mode toggle
+$("#modes").addEventListener("click", (e) => {
+  const b = e.target.closest("button"); if (!b) return;
+  mode = b.dataset.mode;
+  document.querySelectorAll("#modes button").forEach((x) => x.setAttribute("aria-pressed", x === b));
+  if ($("#q").value.trim()) search();
+});
+
+// --- Tabs
+document.querySelectorAll("nav.tabs button").forEach((b) => b.addEventListener("click", () => {
+  document.querySelectorAll("nav.tabs button").forEach((x) => x.setAttribute("aria-selected", x === b));
+  $("#view-ask").hidden = b.dataset.view !== "ask";
+  $("#view-eval").hidden = b.dataset.view !== "eval";
+}));
+
+document.addEventListener("keydown", (e) => {
+  if (e.key === "/" && document.activeElement !== $("#q")) { e.preventDefault(); $("#q").focus(); }
+});
+
+$("#qform").addEventListener("submit", (e) => { e.preventDefault(); search(); });
+
+async function search() {
+  const q = $("#q").value.trim();
+  const err = $("#err");
+  err.hidden = true;
+  if (!q) { err.textContent = "Type a question first."; err.hidden = false; $("#q").focus(); return; }
+  $("#go").disabled = true; $("#go").textContent = "Searching…";
+  try {
+    const r = await fetch("/api/ask", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ q, mode, k: 4 }) });
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.error || "Search failed.");
+    last = data; active = 0;
+    render();
+  } catch (ex) {
+    err.textContent = ex.message.includes("fetch") ? "Can't reach the server. Is python app.py still running?" : ex.message;
+    err.hidden = false;
+  } finally {
+    $("#go").disabled = false; $("#go").textContent = "Find answer";
+  }
+}
+
+function render() {
+  const d = last;
+  $("#empty").hidden = true;
+  $("#results").hidden = false;
+  const idx = Object.fromEntries(d.hits.map((h, i) => [h.id, i]));
+
+  // Answer: bullets or paragraphs, with [chunk#id] citations turned into buttons.
+  const cite = (s) => esc(s).replace(/\[([^\]]*#\d+[^\]]*)\]/g, (_, ids) =>
+    ids.split(/\s*,\s*/).map((id) => idx[id] !== undefined
+      ? `<button class="cite" data-i="${idx[id]}" type="button" aria-label="Show source ${idx[id] + 1}">${idx[id] + 1}</button>` : "").join(""));
+  const lines = d.answer.split("\n").filter((l) => l.trim());
+  const bullets = lines.every((l) => l.trim().startsWith("- "));
+  $("#answer").innerHTML = bullets
+    ? `<ul>${lines.map((l) => `<li>${cite(l.trim().slice(2))}</li>`).join("")}</ul>`
+    : lines.map((l) => `<p>${cite(l)}</p>`).join("");
+  const modeName = { hybrid: "hybrid search", bm25: "keyword search", dense: "meaning search" }[d.mode];
+  $("#meta").textContent = `${d.generator === "Claude" ? "Written by Claude" : "Quoted from your notes"} using ${modeName}. Retrieval took ${d.ms.retrieve} ms.`;
+
+  // Sources
+  const r = (x) => (x ? `#${x}` : "not in top 20");
+  $("#sources").innerHTML = d.hits.map((h, i) => `
+    <article class="src" id="src-${i}" data-i="${i}">
+      <div class="src-head">
+        <div class="src-num">${i + 1}</div>
+        <div><h3>${esc(h.heading)}</h3><div class="file">${esc(h.source)}</div></div>
+      </div>
+      <div class="ranks">
+        <span class="k">Keyword rank <b>${r(h.bm25_rank)}</b></span>
+        <span class="m">Meaning rank <b>${r(h.dense_rank)}</b></span>
+        <span>Fused rank <b>${r(h.fused_rank)}</b></span>
+      </div>
+      <div class="body">${highlight(h.text, d.terms)}</div>
+      <button class="more" type="button">Show full passage</button>
+    </article>`).join("");
+  document.querySelectorAll(".src .more").forEach((b) => b.addEventListener("click", (e) => {
+    const card = b.closest(".src"); card.classList.toggle("open");
+    b.textContent = card.classList.contains("open") ? "Show less" : "Show full passage";
+    e.stopPropagation();
+  }));
+  document.querySelectorAll(".src").forEach((c) => c.addEventListener("click", () => select(+c.dataset.i, false)));
+  document.querySelectorAll(".cite").forEach((c) => c.addEventListener("click", () => select(+c.dataset.i, true)));
+
+  drawTrace();
+  select(0, false);
+}
+
+function select(i, scroll) {
+  active = i;
+  document.querySelectorAll(".src").forEach((c) => c.classList.toggle("active", +c.dataset.i === i));
+  document.querySelectorAll(".trace .line").forEach((l) => l.classList.toggle("on", +l.dataset.i === i));
+  if (scroll) $(`#src-${i}`).scrollIntoView({ behavior: "smooth", block: "center" });
+  const h = last.hits[i];
+  const parts = [h.bm25_rank && `1/(60+${h.bm25_rank})`, h.dense_rank && `1/(60+${h.dense_rank})`].filter(Boolean);
+  $("#math").innerHTML = `Source ${i + 1} gets a point from each list it appears in, worth more the higher it ranks.
+    <span class="eq">${parts.join(" + ") || "0"} = ${h.rrf_score.toFixed(4)}</span>
+    BM25 score ${h.bm25_score}, cosine similarity ${h.dense_score}. Scores can't be compared across methods, so only ranks are merged.`;
+}
+
+// Slope chart: keyword rank → fused rank → meaning rank, one line per source.
+function drawTrace() {
+  const W = 320, top = 42, step = 24, MAX = 10;
+  const xs = [44, 160, 276];
+  const y = (r) => (r && r <= MAX ? top + (r - 1) * step : top + MAX * step + 14);
+  const bottom = top + MAX * step + 14;
+  let s = `<svg viewBox="0 0 ${W} ${bottom + 22}" role="img" aria-label="Rank of each source in keyword search, fused list and meaning search">`;
+  s += `<text class="axis" x="${xs[0]}" y="18" text-anchor="middle">Keywords</text>
+        <text class="axis" x="${xs[1]}" y="18" text-anchor="middle">Fused</text>
+        <text class="axis" x="${xs[2]}" y="18" text-anchor="middle">Meaning</text>`;
+  for (let r = 1; r <= MAX; r++) {
+    s += `<line class="grid" x1="${xs[0] - 20}" x2="${xs[2] + 20}" y1="${y(r)}" y2="${y(r)}" stroke-dasharray="2 4"/>
+          <text class="rk" x="6" y="${y(r) + 4}">${r}</text>`;
+  }
+  s += `<text class="rk" x="6" y="${bottom + 4}">10+</text>`;
+  last.hits.forEach((h, i) => {
+    const pts = [[xs[0], y(h.bm25_rank)], [xs[1], y(h.fused_rank)], [xs[2], y(h.dense_rank)]];
+    s += `<g class="hit" data-i="${i}">
+      <polyline class="line" data-i="${i}" points="${pts.map((p) => p.join(",")).join(" ")}"/>
+      <circle cx="${pts[0][0]}" cy="${pts[0][1]}" r="6" fill="var(--keyword)"/>
+      <circle cx="${pts[2][0]}" cy="${pts[2][1]}" r="6" fill="var(--meaning)"/>
+      <circle cx="${pts[1][0]}" cy="${pts[1][1]}" r="10" fill="var(--ink)"/>
+      <text class="num" x="${pts[1][0]}" y="${pts[1][1] + 4}" text-anchor="middle">${i + 1}</text>
+    </g>`;
+  });
+  s += `</svg>`;
+  $("#trace").innerHTML = s;
+  document.querySelectorAll(".trace g.hit").forEach((g) => g.addEventListener("click", () => select(+g.dataset.i, true)));
+}
+
+// --- Evaluation
+$("#runEval").addEventListener("click", async () => {
+  const b = $("#runEval"); b.disabled = true; b.textContent = "Running…";
+  try {
+    const d = await (await fetch("/api/eval")).json();
+    const names = { bm25: "Keywords only", dense: "Meaning only", hybrid: "Hybrid" };
+    const best = (key) => Math.max(...d.rows.map((r) => r[key]));
+    const cell = (r, key) => `<td><div class="bar ${r[key] === best(key) ? "best" : ""}"><i style="width:${Math.round(r[key] * 100)}px"></i>${r[key].toFixed(2)}</div></td>`;
+    const hybrid = d.rows.find((r) => r.mode === "hybrid");
+    $("#evalOut").innerHTML = `
+      <table class="scores">
+        <thead><tr><th>Method</th><th>Recall@1</th><th>Recall@3</th><th>MRR</th></tr></thead>
+        <tbody>${d.rows.map((r) => `<tr><td class="mode">${names[r.mode]}</td>${cell(r, "r1")}${cell(r, "r3")}${cell(r, "mrr")}</tr>`).join("")}</tbody>
+      </table>
+      <div class="misses"><h2>Questions hybrid search missed (${hybrid.misses.length} of ${d.n})</h2>
+        ${hybrid.misses.length ? `<ul>${hybrid.misses.map((m) => `<li>${esc(m)}</li>`).join("")}</ul>` : "<p>None. Every question found its section in the top three.</p>"}
+      </div>`;
+    b.textContent = "Run again";
+  } catch {
+    $("#evalOut").innerHTML = `<p class="error">Can't reach the server. Is python app.py still running?</p>`;
+    b.textContent = "Run the 20-question test";
+  } finally { b.disabled = false; }
+});
+</script>
+</body>
+</html>
